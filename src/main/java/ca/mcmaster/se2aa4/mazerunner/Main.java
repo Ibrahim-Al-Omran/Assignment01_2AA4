@@ -12,29 +12,42 @@ public class Main {
 
     public static void main(String[] args) {
         logger.info("** Starting Maze Runner");
+        Walker walker = new Walker();
         try {
             if (args.length ==2 && args[0].equals("-i")){
-                logger.info("**** Reading the maze from file " + args[1]);
-                BufferedReader reader = new BufferedReader(new FileReader(args[1]));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    for (int idx = 0; idx < line.length(); idx++) {
-                        if (line.charAt(idx) == '#') {
-                            System.out.print("WALL ");
-                        } else if (line.charAt(idx) == ' ') {
-                            System.out.print("PASS ");
-                        }
-                    }
-                    System.out.print(System.lineSeparator());
-                }
+                printMaze(args[1]);
             }
-            else throw new Exception();
-            
-        } catch(Exception e) {
+            else if (args.length == 4 && args[0].equals("-i") && args[2].equals("-p")){
+                logger.info("**** Reading the maze from file " + args[1]);
+                walker.checkPath(args[1], args[3]);
+            }
+            else throw new Exception(); 
+        }
+        catch(Exception e) {
             logger.error("/!\\ An error has occured /!\\");
         }
+
         logger.info("**** Computing path");
         logger.info("PATH NOT COMPUTED");
         logger.info("** End of MazeRunner");
     }
+
+
+    private static void printMaze(String filename) throws Exception{
+        logger.info("**** Reading the maze from file " + filename);
+                BufferedReader reader = new BufferedReader(new FileReader(filename));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    for (int idx = 0; idx < line.length(); idx++) {
+                        if (line.charAt(idx) == '#') {
+                            logger.trace("WALL ");
+                        } else if (line.charAt(idx) == ' ') {
+                            logger.trace("PASS ");
+                        }
+                    }
+                    logger.trace(System.lineSeparator());
+                }
+    }
 }
+
+
