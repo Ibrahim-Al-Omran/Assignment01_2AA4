@@ -12,29 +12,37 @@ public class Main {
 
     public static void main(String[] args) {
         logger.info("** Starting Maze Runner");
-        Walker walker = new Walker();
+        
+        
         try {
+            logger.info("**** Reading the maze from file " + args[1]);
             if (args.length ==2 && args[0].equals("-i")){
+                logger.info("**** Computing path");
+                Walker walker = new Walker(args[1]);
                 printMaze(args[1]);
+                try {
+                    String result = walker.explore();
+                    System.out.println(result);
+                } catch (Exception e) {
+                    logger.warn("PATH NOT COMPUTED");
+                }
+                
             }
             else if (args.length == 4 && args[0].equals("-i") && args[2].equals("-p")){
-                logger.info("**** Reading the maze from file " + args[1]);
-                walker.checkPath(args[1], args[3]);
+                Walker walker = new Walker(args[1], args[3]);
+                walker.checkPath();
             }
             else throw new Exception(); 
         }
         catch(Exception e) {
-            logger.error("/!\\ An error has occured /!\\");
+            e.printStackTrace();
         }
 
-        logger.info("**** Computing path");
-        logger.info("PATH NOT COMPUTED");
         logger.info("** End of MazeRunner");
     }
 
 
     private static void printMaze(String filename) throws Exception{
-        logger.info("**** Reading the maze from file " + filename);
                 BufferedReader reader = new BufferedReader(new FileReader(filename));
                 String line;
                 while ((line = reader.readLine()) != null) {

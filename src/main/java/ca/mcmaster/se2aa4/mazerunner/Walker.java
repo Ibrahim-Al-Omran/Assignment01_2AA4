@@ -3,38 +3,184 @@ package ca.mcmaster.se2aa4.mazerunner;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.Stack;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 class Walker{
-
+    String filename;
+    String path;
+    char[][] maze;
+    List<Position> ends;
+    Position start;
+    Position end;
+    Position curr;
     private static final Logger logger = LogManager.getLogger();
 
-    /*
-    private void explore(){
-        //the function that moves through the maze, it will go in any open tile
-        Queue<Position> queue = new LinkedList<>();
-        Set<Position> wentOver = new HashSet<>();
-
-        while (!queue.isEmpty()){
-            Position curr = queue.poll();
-        }
-    }*/
-
-    public void checkPath(String filename, String path){
-        
+    public Walker(String filename, String path){
+        this.filename = filename;
+        this.path = path;
         try {
-            //convert maze into 2D array
-            char[][] maze = readFile(filename);
+            this.maze = readFile(filename);
+        } catch (Exception e) {
+            logger.error("/!\\ An error has occured /!\\");
+        }
+        this.ends = findEnds(maze);
+        this.start = ends.get(0);
+        this.end = ends.get(1); 
+        this.curr = new Position(start.row, start.col);
+        
+    }
+    public Walker(String filename){
+        this.filename = filename;
+        try {
+            this.maze = readFile(filename);
+        } catch (Exception e) {
+            logger.error("/!\\ An error has occured /!\\");
+        }
+        this.ends = findEnds(maze);
+        this.start = ends.get(0);
+        this.end = ends.get(1); 
+        this.curr = new Position(start.row, start.col);
+        
+    }
 
-            //find the start and end of maze
-            List<Position> ends = findEnds(maze);
-            Position start = ends.get(0);
-            Position end = ends.get(1);
+    /*
+    process:
+    call findengs to find start and end
+    begin at start
+    arote moves in arraylist
+    look on left right and front, and go to the one that is open
+    if there is more than one option, make a new temp position and store curentr positin
+        go to one and if dead end reset and go back in other direction
+    repeat until reach end (while do loop)
 
-            //now check if path is valid
+    */
+
+
+
+    
+
+    public String explore() {
+        StringBuilder solution = new StringBuilder();
+        Stack<Position> checkpoints = new Stack<>();
+        Stack<Integer> directionStack = new Stack<>(); //store direction at checkpoints
+        Stack<Integer> solutionLengthStack = new Stack<>(); //store solution length at checkpoints
+        Set<Position> visited = new HashSet<>();  //track visited positions
+        int[][] moves = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}}; //up, right, down, left
+        boolean moving = true;
+        int direction = 1; //start facing right (1 = right, 2 = down, 3 = left, 0 = up)
+    
+        while (moving) {
+           
+            visited.add(new Position(curr.row, curr.col));
+    
+            //check if reached end
+            if (curr.row == end.row && curr.col == end.col) {
+                moving = false;
+                break;
+            }
+    
+            //find possible moves
+            List<Position> options = new ArrayList<>();
+            for (int[] move : moves) {
+                int newRow = curr.row + move[0];
+                int newCol = curr.col + move[1];
+                Position nextPos = new Position(newRow, newCol);
+    
+                //check if move is valid and not visited
+                if (newRow >= 0 && newRow < maze.length && 
+                    newCol >= 0 && newCol < maze[newRow].length && 
+                    maze[newRow][newCol] == ' ' && 
+                    !visited.contains(nextPos)) {
+                    options.add(nextPos);
+                }
+            }
+    
+            if (!options.isEmpty()) {
+                //save checkpoint if there are multiple paths
+                if (options.size() > 1) { 
+                    checkpoints.push(new Position(curr.row, curr.col));
+                    directionStack.push(direction);
+                    solutionLengthStack.push(solution.length());
+                }
+    
+                //move to the first available option
+                Position next = options.get(0);
+                Pair<String, Integer> moveResult = moveDirection(next, direction);
+                solution.append(moveResult.getFirst());
+                direction = moveResult.getSecond(); //update direction
+                curr = next;
+            } 
+            else {
+                //backtrack to the last checkpoint
+                if (!checkpoints.isEmpty()) {
+                    //remove current position from visited to allow re-exploration
+                    visited.remove(curr);
+                    //restore checkpoint and direction
+                    Position checkpoint = checkpoints.pop();
+                    direction = directionStack.pop();
+                    curr = checkpoint;
+    
+                    //remove the moves added since the last checkpoint
+                    int lastSolutionLength = solutionLengthStack.pop();
+                    solution.setLength(lastSolutionLength);
+    
+                } 
+                else {
+                    moving = false; //no more moves possible
+                }
+            }
+        }
+        return solution.toString();
+    }
+
+
+    private Pair<String, Integer> moveDirection(Position next, int direction) {
+        //calculate the difference between the current position and the next position
+        int rowDiff = next.row - curr.row;
+        int colDiff = next.col - curr.col;
+    
+        //determine relative direction of the next move
+        int nextDirection;
+        if (rowDiff == -1 && colDiff == 0) {
+            nextDirection = 0; //up
+        } else if (rowDiff == 0 && colDiff == 1) {
+            nextDirection = 1; //right
+        } else if (rowDiff == 1 && colDiff == 0) {
+            nextDirection = 2; //down
+        } else if (rowDiff == 0 && colDiff == -1) {
+            nextDirection = 3; //left
+        } else {
+            return new Pair<>("", direction); //invalid move (shouldnt happen)
+        }
+    
+        //calculate the turn required to face the next direction
+        int turn = (nextDirection - direction + 4) % 4;
+    
+        //determine the movement command and new direction
+        switch (turn) {
+            case 0:
+                return new Pair<>("F", nextDirection); //move forward (no turn needed)
+            case 1:
+                return new Pair<>("RF", nextDirection); //turn right and move forward
+            case 2:
+                return new Pair<>("RRF", nextDirection); //turn around (right twice) and move forward (should not happen but still need to handle)
+            case 3:
+                return new Pair<>("LF", nextDirection); //turn left and move forward
+            default:
+                return new Pair<>("", direction); //invalid turn (should not happen)
+        }
+    }
+
+
+    public void checkPath(){
+        try {
+            //check if path is valid
             boolean validPath = followPath(maze, start, path, end);
 
             if(validPath){
@@ -90,9 +236,7 @@ class Walker{
         // directions: 0 = up, 1 = right, 2 = down, 3 = left (from top view)
         int[][] directions = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
         int direction = 1; // begin facing right
-    
-        Position curr = new Position(start.row, start.col);
-    
+       
         for (char move : path.toCharArray()) {
             switch (move) {
                 case 'F': // move forward in current direction
@@ -124,12 +268,22 @@ class Walker{
         return maze[pos.row][pos.col] != '#';
     }
     
-    static class Position {
-        int col;
-        int row;
-        Position(int row, int col) {
-            this.row = row;
-            this.col = col;
-        }
+}
+
+class Pair<K, V> {
+    private K first;
+    private V second;
+
+    public Pair(K first, V second) {
+        this.first = first;
+        this.second = second;
+    }
+
+    public K getFirst() {
+        return first;
+    }
+
+    public V getSecond() {
+        return second;
     }
 }
