@@ -48,22 +48,7 @@ class Walker{
         this.curr = new Position(start.row, start.col);
         
     }
-
-    /*
-    process:
-    call findengs to find start and end
-    begin at start
-    arote moves in arraylist
-    look on left right and front, and go to the one that is open
-    if there is more than one option, make a new temp position and store curentr positin
-        go to one and if dead end reset and go back in other direction
-    repeat until reach end (while do loop)
-
-    */
-
-
-
-    
+ 
 
     public String explore() {
         StringBuilder solution = new StringBuilder();
@@ -136,7 +121,8 @@ class Walker{
                 }
             }
         }
-        return solution.toString();
+        String path = solution.toString();
+        return factorize(path);
     }
 
 
@@ -180,6 +166,9 @@ class Walker{
 
     public void checkPath(){
         try {
+            if (checkFactorized(path)){
+                path = convertFactorized(path);
+            }
             //check if path is valid
             boolean validPath = followPath(maze, start, path, end);
 
@@ -267,23 +256,107 @@ class Walker{
         //ensure position is not a wall
         return maze[pos.row][pos.col] != '#';
     }
+
+    private String factorize(String path) {
+        if (path == null || path.isEmpty()) {
+            return path; //handle empty or null inputs
+        }
     
+        StringBuilder newPath = new StringBuilder();
+        int count = 1;
+        char prev = path.charAt(0);
+    
+        for (int i = 1; i < path.length(); i++) {
+            if (path.charAt(i) == prev) {
+                count++;
+            } else {
+                if (count == 1) {
+                    newPath.append(prev);
+                } else {
+                    newPath.append(count).append(prev);
+                }
+                count = 1;
+                prev = path.charAt(i);
+            }
+        }
+    
+        //append the last character or its count
+        if (count == 1) {
+            newPath.append(prev);
+        } else {
+            newPath.append(count).append(prev);
+        }
+    
+        return newPath.toString();
+    }
+    
+    private String convertFactorized(String path) {
+        if (path == null || path.isEmpty()) {
+            return path; 
+        }
+    
+        StringBuilder newPath = new StringBuilder();
+        int i = 0;
+    
+        while (i < path.length()) {
+            char c = path.charAt(i);
+    
+            //check if the current character is a digit
+            if (Character.isDigit(c)) {
+                //extract the full count
+                int count = 0;
+                while (i < path.length() && Character.isDigit(path.charAt(i))) {
+                    count = count * 10 + Character.getNumericValue(path.charAt(i)); //convert char to int
+                    i++;
+                }
+    
+                //append the character count times
+                if (i < path.length()) {
+                    char ch = path.charAt(i);
+                    for (int j = 0; j < count; j++) {
+                        newPath.append(ch);
+                    }
+                    i++;
+                } else {
+                    // Handle malformed input (e.g., ends with a digit)
+                    throw new IllegalArgumentException("Error -- Invalid factorized path");
+                }
+            } else {
+                //append character as-is
+                newPath.append(c);
+                i++;
+            }
+        }
+    
+        return newPath.toString();
+    }
+    
+    private boolean checkFactorized(String path){
+        for (int i = 0; i<path.length(); i++){
+            char c = path.charAt(i);
+            if(Character.isDigit(c)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static class Pair<K, V> {
+        private K first;
+        private V second;
+    
+        public Pair(K first, V second) {
+            this.first = first;
+            this.second = second;
+        }
+    
+        public K getFirst() {
+            return first;
+        }
+    
+        public V getSecond() {
+            return second;
+        }
+    }
 }
 
-class Pair<K, V> {
-    private K first;
-    private V second;
-
-    public Pair(K first, V second) {
-        this.first = first;
-        this.second = second;
-    }
-
-    public K getFirst() {
-        return first;
-    }
-
-    public V getSecond() {
-        return second;
-    }
-}
