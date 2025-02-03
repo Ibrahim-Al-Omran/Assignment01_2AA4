@@ -28,8 +28,13 @@ public class Main {
                 }
                 
             }
-            else if (args.length == 4 && args[0].equals("-i") && args[2].equals("-p")){
-                Walker walker = new Walker(args[1], args[3]);
+            else if (args.length >= 4 && args[0].equals("-i") && args[2].equals("-p")){
+                StringBuilder pathBuilder = new StringBuilder();
+                for (int i = 3; i < args.length; i++) {
+                    pathBuilder.append(args[i]);
+                }
+                String path = pathBuilder.toString().replaceAll("\\s+", ""); //remove all spaces
+                Walker walker = new Walker(args[1], path);
                 walker.checkPath();
             }
             else throw new Exception(); 
