@@ -16,31 +16,43 @@ public class Main {
         
         try {
             logger.info("**** Reading the maze from file " + args[1]);
-            if (args.length ==2 && args[0].equals("-i")){
+            if (args.length == 2 && args[0].equals("-i") || args.length == 4 && args[0].equals("-i") && args[2].equals("-method")) {
                 logger.info("**** Computing path");
-                Walker walker = new Walker(args[1]);
                 printMaze(args[1]);
+
+                Walker solver;
+                if (args.length == 4) {
+                    switch (args[3].toLowerCase()) {
+                        case "tremaux":
+                            solver = new Tremaux(args[1]);
+                            break;
+                        case "righthand":
+                        default:
+                            solver = new RightHand(args[1]);
+                            break;
+                    }
+                } else {
+                    solver = new RightHand(args[1]);
+                }
+
                 try {
-                    String result = walker.explore();
+                    String result = solver.explore();
                     System.out.println(result);
                 } catch (Exception e) {
                     logger.warn("PATH NOT COMPUTED");
                 }
-                
-            }
-            else if (args.length >= 4 && args[0].equals("-i") && args[2].equals("-p")){
+            } 
+            else if (args.length >= 4 && args[0].equals("-i") && args[2].equals("-p")) {
                 StringBuilder pathBuilder = new StringBuilder();
                 for (int i = 3; i < args.length; i++) {
                     pathBuilder.append(args[i]);
                 }
-                String path = pathBuilder.toString().replaceAll("\\s+", ""); //remove all spaces
-                Walker walker = new Walker(args[1], path);
-                walker.checkPath();
+                String path = pathBuilder.toString().replaceAll("\\s+", ""); // remove all spaces
+                Checker checker = new Checker(args[1], path);
+                checker.checkPath();
             }
-            else throw new Exception(); 
-        }
-        catch(Exception e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            logger.error("/!\\ An error has occurred /!\\");
         }
 
         logger.info("** End of MazeRunner");
