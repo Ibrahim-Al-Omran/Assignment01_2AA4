@@ -4,21 +4,21 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
-public class Tremaux extends Walker {
+public class Tremaux extends AbstractWalker {
 
     public Tremaux(String filename) {
         super(filename);
     }
 
     @Override
-    public String explore() {
+    protected String performExploration() {
         StringBuilder solution = new StringBuilder();
         Map<Position, Integer> visited = new HashMap<>();
         Stack<Position> pathStack = new Stack<>();
 
-        //directions: 0 = up, 1 = right, 2 = down, 3 = left
+        // Directions: 0 = up, 1 = right, 2 = down, 3 = left
         int[][] directions = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
-        int direction = 1; //begin facing right
+        int direction = 1; // Begin facing right
 
         pathStack.push(curr);
         visited.put(curr, 1);
@@ -26,7 +26,7 @@ public class Tremaux extends Walker {
         while (!pathStack.isEmpty()) {
             Position pos = pathStack.peek();
 
-            //check if reached end
+            // Check if reached end
             if (pos.row == end.row && pos.col == end.col) {
                 break;
             }
@@ -65,6 +65,6 @@ public class Tremaux extends Walker {
             }
         }
 
-        return factorize(solution.toString());
+        return solution.toString();
     }
 }

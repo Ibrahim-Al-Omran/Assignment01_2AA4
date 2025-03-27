@@ -22,17 +22,9 @@ public class Main {
 
                 Walker solver;
                 if (args.length == 4) {
-                    switch (args[3].toLowerCase()) {
-                        case "tremaux":
-                            solver = new Tremaux(args[1]);
-                            break;
-                        case "righthand":
-                        default:
-                            solver = new RightHand(args[1]);
-                            break;
-                    }
+                    solver = WalkerFactory.createWalker(args[3], args[1]);
                 } else {
-                    solver = new RightHand(args[1]);
+                    solver = WalkerFactory.createDefaultWalker(args[1]);
                 }
 
                 try {

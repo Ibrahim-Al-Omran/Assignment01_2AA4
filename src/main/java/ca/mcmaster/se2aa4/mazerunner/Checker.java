@@ -1,28 +1,48 @@
 package ca.mcmaster.se2aa4.mazerunner;
 
-public class Checker extends Walker {
-    
-     public Checker(String filename, String path) {
-         super(filename, path);
-     }
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-     public void checkPath(){
+public class Checker {
+    private String filename;
+    private StringOps operator = new StringOps();
+    private String path;
+    private char[][] maze;
+    private Position start;
+    private Position end;
+    private Position curr;
+    private final Logger logger = LogManager.getLogger();
+    private Walker pathHelper; // Use Walker interface for path operations
+
+    public Checker(String filename, String path) {
+        this.filename = filename;
+        this.path = path;
+        
+        // Create a temporary PathHelper to handle file loading and utility methods
+        this.pathHelper = new PathHelper(filename);
+        
+        // We only need these fields from the helper
+        this.maze = ((PathHelper)pathHelper).getMaze();
+        this.start = ((PathHelper)pathHelper).getStart();
+        this.end = ((PathHelper)pathHelper).getEnd();
+        this.curr = new Position(start.row, start.col);
+    }
+
+    public void checkPath() {
         try {
-            if (checkFactorized(path)){
-                path = convertFactorized(path);
+            if (checkFactorized(path)) {
+                path = operator.convertFactorized(path);
             }
-            //check if path is valid
+            // Check if path is valid
             boolean validPath = followPath(maze, start, path, end);
 
-            if(validPath){
+            if (validPath) {
                 System.out.println("Correct path");
-            }
-            else{
+            } else {
                 System.out.println("Incorrect path");
             }
-        }
-        catch (Exception e) {
-            logger.error("/!\\ An error has occured /!\\");
+        } catch (Exception e) {
+            logger.error("/!\\ An error has occurred /!\\");
         }
     }
 
@@ -47,19 +67,44 @@ public class Checker extends Walker {
                     return false;
             }
         
-            if (!isValidMove(maze, curr)) return false;
+            if (!pathHelper.isValidMove(maze, curr)) return false;
         }
         return curr.row == end.row && curr.col == end.col;
     }
 
-    private boolean checkFactorized(String path){
-        for (int i = 0; i<path.length(); i++){
+    private boolean checkFactorized(String path) {
+        for (int i = 0; i < path.length(); i++) {
             char c = path.charAt(i);
-            if(Character.isDigit(c)){
+            if (Character.isDigit(c)) {
                 return true;
             }
         }
         return false;
     }
-
+    
+    // Private helper class that implements Walker interface just for utility methods
+    private static class PathHelper extends AbstractWalker {
+        public PathHelper(String filename) {
+            super(filename);
+        }
+        
+        @Override
+        protected String performExploration() {
+            // Not used by Checker, just a placeholder implementation
+            return "";
+        }
+        
+        // Expose necessary fields
+        public char[][] getMaze() {
+            return maze;
+        }
+        
+        public Position getStart() {
+            return start;
+        }
+        
+        public Position getEnd() {
+            return end;
+        }
+    }
 }
