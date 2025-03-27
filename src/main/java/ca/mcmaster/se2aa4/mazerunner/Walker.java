@@ -9,14 +9,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 
-abstract class Walker{
-    String filename;
-    String path;
-    char[][] maze;
-    List<Position> ends;
-    Position start;
-    Position end;
-    Position curr;
+public abstract class Walker{
+    protected String filename;
+    protected String path;
+    protected char[][] maze;
+    protected List<Position> ends;
+    protected Position start;
+    protected Position end;
+    protected Position curr;
     protected final Logger logger = LogManager.getLogger();
 
     public Walker(String filename, String path){
@@ -90,7 +90,7 @@ abstract class Walker{
     
     protected boolean isValidMove(char[][] maze, Position pos) {
         //ensure the row and column are within bounds
-        if (pos.row < 0 || pos.row >= maze.length || pos.col < 0 || pos.col >= maze[pos.row].length) {
+        if (pos.row < 0 || pos.row >= maze.length || pos.col < 0 || pos.col >= maze[pos.row].length) {;
             return false;
         }
         //ensure position is not a wall

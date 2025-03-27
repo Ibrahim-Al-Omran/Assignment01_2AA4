@@ -3,7 +3,7 @@ package ca.mcmaster.se2aa4.mazerunner;
 import java.util.HashSet;
 import java.util.Set;
 
-class RightHand extends Walker {
+public class RightHand extends Walker {
 
     private int direction; // 0 = up, 1 = right, 2 = down, 3 = left (same as Walker)
     private StringBuilder path; 
